@@ -28,7 +28,7 @@ public class SnippetController {
         if (language != null) {
             return ResponseEntity.ok(snippetMap.values()
                     .stream()
-                    .filter(snippet -> language.equals(snippet.getLanguage()))
+                    .filter(snippet -> language.toLowerCase().equals(snippet.getLanguage().toLowerCase()))
                     .toList()
             );
         }
