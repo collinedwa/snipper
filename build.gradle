@@ -16,6 +16,8 @@ repositories {
 }
 
 dependencies {
+	implementation('io.jsonwebtoken:jjwt:0.9.1')
+	implementation 'javax.xml.bind:jaxb-api:2.1'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation group: 'org.hibernate', name: 'hibernate-validator', version: '5.4.3.Final'

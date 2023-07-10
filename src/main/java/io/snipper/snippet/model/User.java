@@ -14,7 +14,6 @@ public class User {
         this.id = id;
         this.email = email;
         this.password = password;
-        this.loggedIn = false;
     }
 
     public void setId(final String id) {
@@ -42,13 +41,5 @@ public class User {
 
     public String hashPassword() {
         return BCrypt.hashpw(this.password, BCrypt.gensalt());
-    }
-
-    public void setLoggedIn(boolean loggedIn) {
-        this.loggedIn = loggedIn;
-    }
-
-    public boolean isLoggedIn() {
-        return this.loggedIn;
     }
 }
