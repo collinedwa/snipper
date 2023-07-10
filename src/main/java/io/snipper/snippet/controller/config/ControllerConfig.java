@@ -23,6 +23,8 @@ public class ControllerConfig {
 
             for (JsonElement node : arr) {
                 final User user = gson.fromJson(node, User.class);
+                final String hashedPass = user.hashPassword();
+                user.setPassword(hashedPass);
                 map.put(user.getId(), user);
             }
         } catch (Exception e) {

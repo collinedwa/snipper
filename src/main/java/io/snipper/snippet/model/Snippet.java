@@ -3,11 +3,11 @@ package io.snipper.snippet.model;
 public class Snippet {
     private String id;
     private String language;
-    private String code;
+    private Object code;
 
     public Snippet(final String id,
                 final String language,
-                final String code) {
+                final Object code) {
         this.id = id;
         this.language = language;
         this.code = code;
@@ -32,7 +32,7 @@ public class Snippet {
         this.code = code;
     }
 
-    public String getCode() {
+    public Object getCode() {
         return this.code;
     }
 }
