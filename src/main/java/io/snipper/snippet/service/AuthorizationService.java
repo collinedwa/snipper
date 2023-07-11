@@ -45,8 +45,6 @@ public class AuthorizationService {
         final String jwtToken = tokens.get(user.getEmail());
         if (jwtToken != null) {
             final Claims claims = Jwts.parser().setSigningKey(authKey).parseClaimsJws(jwtToken).getBody();
-            System.out.println(claims);
-
             return claims.getExpiration().after(Date.from(Instant.now()));
         }
         return false;
