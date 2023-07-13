@@ -5,138 +5,103 @@ import io.snipper.snippet.model.User;
 import io.snipper.snippet.model.UserLogin;
 import io.snipper.snippet.service.AuthorizationService;
 import io.snipper.snippet.service.EncryptionService;
+import io.snipper.snippet.service.SnippetService;
+import io.snipper.snippet.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
 public class SnippetController {
-    private final Map<String, User> userMap;
-    private final Map<String, Snippet> snippetMap;
+    private final Map<Long, User> userMap;
+    private final Map<Long, Snippet> snippetMap;
     private final AuthorizationService authorizationService;
     private final EncryptionService encryptionService;
-
+    private final SnippetService snippetService;
+    final UserService userService;
 
     @Autowired
-    public SnippetController(final Map<String, User> userMap,
-                             final Map<String, Snippet> snippetMap,
+    public SnippetController(final Map<Long, User> userMap,
+                             final Map<Long, Snippet> snippetMap,
                              final AuthorizationService authorizationService,
-                             final EncryptionService encryptionService) {
+                             final EncryptionService encryptionService,
+                             final SnippetService snippetService,
+                             final UserService userService) {
         this.userMap = userMap;
         this.snippetMap = snippetMap;
         this.authorizationService = authorizationService;
         this.encryptionService = encryptionService;
+        this.snippetService = snippetService;
+        this.userService = userService;
     }
 
     @GetMapping(path = "/snippets", produces = "application/json")
     public ResponseEntity<Collection<Snippet>> getSnippets(@RequestParam(required = false) final String language) {
         if (language != null) {
-            return ResponseEntity.ok(snippetMap.values()
+            return ResponseEntity.ok(snippetService.getSnippets()
                     .stream()
                     .filter(snippet -> language.toLowerCase().equals(snippet.getLanguage().toLowerCase()))
                     .toList()
             );
         }
-        return ResponseEntity.ok(snippetMap.values());
+        return ResponseEntity.ok(snippetService.getSnippets());
     }
 
     @GetMapping(path = "/snippets/{id}", produces = "application/json")
-    public ResponseEntity<Snippet> getSingleSnippet(@PathVariable(name="id") final String id) throws Exception {
-        if (snippetMap.containsKey(id)) {
-            final Snippet snippet = snippetMap.get(id);
-            final String code = (String) snippet.getCode();
-            final String secureCode = encryptionService.decrypt(code, encryptionService.secretKey);
-            snippet.setCode(secureCode);
-            return ResponseEntity.ok(snippet);
+    public Object getSingleSnippet(@PathVariable(name="id") final Long id,
+                                   @RequestHeader(name="Authorization") final String jwtToken) throws Exception {
+        final Long userId = authorizationService.retrieveUserId(jwtToken);
+        final Snippet snippet = snippetService.getSnippetById(id);
+        final User user = userService.getUserById(userId);
+        final boolean isAuthorized = (authorizationService.validateToken(jwtToken)
+                && authorizationService.validateOwnership(snippet, user));
+
+        if (snippet != null) {
+            final String code = snippet.getCode();
+            snippet.setCode(encryptionService.decrypt(code, encryptionService.secretKey));
+
+            return isAuthorized ? ResponseEntity.ok(snippet) : ResponseEntity.status(401);
         } else {
-            return ResponseEntity.ok(null);
+            return ResponseEntity.badRequest();
         }
     }
 
     @PostMapping(path = "/snippets", consumes = "application/json", produces = "application/json")
-    public Object postSnippet(@Valid @RequestBody final Snippet snippet) throws Exception {
-        if (snippetMap.get(snippet.getId()) == null) {
-            final String code = (String) snippet.getCode();
-            final String secureCode =  encryptionService.encrypt(code, encryptionService.secretKey);
+    public Object postSnippet(@Valid @RequestBody final Snippet snippet,
+                              @RequestHeader(name="Authorization") final String jwtToken) throws Exception {
+
+        if (authorizationService.validateToken(jwtToken)) {
+            final String code = snippet.getCode();
+            final String secureCode = encryptionService.encrypt(code, encryptionService.secretKey);
+            final Long userId = authorizationService.retrieveUserId(jwtToken);
             snippet.setCode(secureCode);
-            snippetMap.put(snippet.getId(), snippet);
+            snippet.setOwnerId(userId);
+            snippetService.postSnippet(snippet);
+
             return ResponseEntity.ok(snippet);
         } else {
-            return ResponseEntity.badRequest();
+            return ResponseEntity.status(401);
         }
     }
 
     @DeleteMapping(path = "/snippets/{id}", produces = "application/json")
-    public ResponseEntity<String> deleteSingleSnippet(@PathVariable(name="id") final String id) {
-        if (snippetMap.get(id) != null) {
-            snippetMap.remove(id);
-            return ResponseEntity.ok("deleted snippet");
-        } else {
-            return ResponseEntity.ok("snippet does not exist");
-        }
-    }
+    public Object deleteSingleSnippet(@PathVariable(name="id") final Long id,
+                                      @RequestHeader(name="Authorization") final String jwtToken) {
+        final Long userId = authorizationService.retrieveUserId(jwtToken);
+        final Snippet snippet = snippetService.getSnippetById(id);
+        final User user = userService.getUserById(userId);
+        final boolean isAuthorized = authorizationService.validateOwnership(snippet, user);
 
-    @GetMapping("/users")
-    public ResponseEntity<Collection<User>> getUsers() {
-        return ResponseEntity.ok(userMap.values());
-    }
-
-    @GetMapping(path = "/users/{id}", produces = "application/json")
-    public Object getSingleUser(@PathVariable(name="id") final String id) {
-        final List<User> users = userMap.values()
-                .stream()
-                .filter(account -> account.getId().equals(id))
-                .collect(Collectors.toList());
-
-        if (!users.isEmpty() ) {
-            final User matchingUser = users.get(0);
-            final boolean isAuthorized = authorizationService.validateToken(matchingUser);
-            if (isAuthorized) {
-                return ResponseEntity.ok(matchingUser);
-            } else {
-                return ResponseEntity.status(401);
-            }
-        }
-        return ResponseEntity.badRequest();
-    }
-
-    @PostMapping(path = "/users", consumes = "application/json", produces = "application/json")
-    public Object postUser(@Valid @RequestBody final User user) {
-        final List<User> users = userMap.values()
-                .stream()
-                .filter(account -> account.getEmail().equals(user.getEmail()))
-                .collect(Collectors.toList());
-
-        if (users.isEmpty()) {
-            user.setPassword(user.hashPassword());
-            userMap.put(user.getId(), user);
-            return ResponseEntity.ok(user);
+        if (snippet != null) {
+            if (isAuthorized) snippetService.deleteSnippet(snippet);
+            return isAuthorized ? ResponseEntity.ok("deleted snippet") : ResponseEntity.status(401);
         } else {
             return ResponseEntity.badRequest();
         }
-    }
-
-    @PostMapping(path = "/users/login", consumes = "application/json", produces = "application/json")
-    public Object loginUser(@Valid @RequestBody final UserLogin user) {
-        final List<User> users = userMap.values()
-                .stream()
-                .filter(account -> account.getEmail().equals(user.getEmail()))
-                .collect(Collectors.toList());
-
-        if (!users.isEmpty()) {
-            final User matchingUser = users.get(0);
-            if (matchingUser.checkPassword(user.getPassword())) {
-                this.authorizationService.generateToken(matchingUser);
-                return ResponseEntity.ok("logged in");
-            }
-        }
-        return ResponseEntity.badRequest();
     }
 }

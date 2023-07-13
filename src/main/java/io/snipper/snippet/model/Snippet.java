@@ -1,32 +1,36 @@
 package io.snipper.snippet.model;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.Set;
 
-@Table(name = "snippets")
+@Entity
+@Table(name="snippets")
 public class Snippet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
+    @Column(nullable = false)
     private String language;
-    private Object code;
+    @Column(nullable = false)
+    private String code;
+    @Column
+    private Long ownerId;
 
-    public Snippet(final String id,
+    public Snippet(final Long id,
                 final String language,
-                final Object code) {
+                final String code) {
         this.id = id;
         this.language = language;
         this.code = code;
     }
+    public Snippet(){
+    }
 
-    public void setId(final String id) {
+    public void setId(final Long id) {
         this.id = id;
     }
-    public String getId() {
+    public Long getId() {
         return this.id;
     }
 
@@ -42,7 +46,15 @@ public class Snippet {
         this.code = code;
     }
 
-    public Object getCode() {
+    public String getCode() {
         return this.code;
+    }
+
+    public void setOwnerId(final Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public Long getOwnerId() {
+        return this.ownerId;
     }
 }

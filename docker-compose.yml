@@ -1,5 +1,5 @@
 services:
-  my-blog-db:
+  snippet-db:
     image: mysql
     ports:
       - "3306:3306"

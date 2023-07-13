@@ -1,42 +1,42 @@
 [
   {
-    "id": 1,
     "language": "Python",
-    "code": "print('Hello, World!')"
+    "code": "print('Hello, World!')",
+    "ownerId": 1
   },
   {
-    "id": 2,
     "language": "Python",
-    "code": "def add(a, b):\n    return a + b"
+    "code": "def add(a, b):\n    return a + b",
+    "ownerId": 1
   },
   {
-    "id": 3,
     "language": "Python",
-    "code": "class Circle:\n    def __init__(self, radius):\n        self.radius = radius\n\n    def area(self):\n        return 3.14 * self.radius ** 2"
+    "code": "class Circle:\n    def __init__(self, radius):\n        self.radius = radius\n\n    def area(self):\n        return 3.14 * self.radius ** 2",
+    "ownerId": 1
   },
   {
-    "id": 4,
     "language": "JavaScript",
-    "code": "console.log('Hello, World!');"
+    "code": "console.log('Hello, World!');",
+    "ownerId": 1
   },
   {
-    "id": 5,
     "language": "JavaScript",
-    "code": "function multiply(a, b) {\n    return a * b;\n}"
+    "code": "function multiply(a, b) {\n    return a * b;\n}",
+    "ownerId": 2
   },
   {
-    "id": 6,
     "language": "JavaScript",
-    "code": "const square = num => num * num;"
+    "code": "const square = num => num * num;",
+    "ownerId": 2
   },
   {
-    "id": 7,
     "language": "Java",
-    "code": "public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}"
+    "code": "public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}",
+    "ownerId": 2
   },
   {
-    "id": 8,
     "language": "Java",
-    "code": "public class Rectangle {\n    private int width;\n    private int height;\n\n    public Rectangle(int width, int height) {\n        this.width = width;\n        this.height = height;\n    }\n\n    public int getArea() {\n        return width * height;\n    }\n}"
+    "code": "public class Rectangle {\n    private int width;\n    private int height;\n\n    public Rectangle(int width, int height) {\n        this.width = width;\n        this.height = height;\n    }\n\n    public int getArea() {\n        return width * height;\n    }\n}",
+    "ownerId": 2
   }
 ]

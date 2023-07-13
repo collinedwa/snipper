@@ -1,21 +1,39 @@
-package io.snipper.snippet.controller.config;
+package io.snipper.snippet.config;
 
 import com.google.gson.*;
 import io.snipper.snippet.model.Snippet;
 import io.snipper.snippet.model.User;
+import io.snipper.snippet.repository.SnippetRepository;
+import io.snipper.snippet.service.EncryptionService;
+import io.snipper.snippet.service.SnippetService;
+import io.snipper.snippet.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.io.FileReader;
 import java.util.HashMap;
 
-@Component
+@Configuration
 public class ControllerConfig {
+    final UserService userService;
+    final SnippetService snippetService;
+    final EncryptionService encryptionService;
+
+    @Autowired
+    public ControllerConfig(final UserService userService,
+                            final SnippetService snippetService,
+                            final EncryptionService encryptionService) {
+        this.userService = userService;
+        this.snippetService = snippetService;
+        this.encryptionService = encryptionService;
+    }
 
     @Bean
-    public HashMap<String, User> userMap() {
+    public HashMap<Long, User> userMap() {
         final Gson gson = new Gson();
-        final HashMap<String, User> map = new HashMap<>();
+        final HashMap<Long, User> map = new HashMap<>();
         final JsonParser jsonParser = new JsonParser();
         try {
             final JsonArray arr = (JsonArray) jsonParser
@@ -25,6 +43,7 @@ public class ControllerConfig {
                 final User user = gson.fromJson(node, User.class);
                 final String hashedPass = user.hashPassword();
                 user.setPassword(hashedPass);
+                userService.createUser(user);
                 map.put(user.getId(), user);
             }
         } catch (Exception e) {
@@ -35,9 +54,9 @@ public class ControllerConfig {
     }
 
     @Bean
-    public HashMap<String, Snippet> snippetMap() {
+    public HashMap<Long, Snippet> snippetMap() {
         final Gson gson = new Gson();
-        final HashMap<String, Snippet> map = new HashMap<>();
+        final HashMap<Long, Snippet> map = new HashMap<>();
         final JsonParser jsonParser = new JsonParser();
         try {
             final JsonArray arr = (JsonArray) jsonParser
@@ -45,6 +64,9 @@ public class ControllerConfig {
 
             for (JsonElement node : arr) {
                 final Snippet snippet = gson.fromJson(node, Snippet.class);
+                final String code = snippet.getCode();
+                snippet.setCode(encryptionService.encrypt(code, encryptionService.secretKey));
+                snippetService.postSnippet(snippet);
                 map.put(snippet.getId(), snippet);
             }
         } catch (Exception e) {
