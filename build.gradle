@@ -20,6 +20,7 @@ dependencies {
 	implementation 'javax.xml.bind:jaxb-api:2.1'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation group: 'org.hibernate', name: 'hibernate-validator', version: '5.4.3.Final'
 	implementation 'com.google.code.gson:gson:2.10.1'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

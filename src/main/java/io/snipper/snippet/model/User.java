@@ -1,12 +1,19 @@
 package io.snipper.snippet.model;
 
+import jakarta.persistence.*;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
+import java.util.Set;
+
+@Table(name = "users")
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
+    @Column(nullable = false, unique = true)
     private String email;
+    @Column(nullable = false, unique = true)
     private String password;
-    private boolean loggedIn;
 
     public User(final String id,
                 final String email,
@@ -42,4 +49,10 @@ public class User {
     public String hashPassword() {
         return BCrypt.hashpw(this.password, BCrypt.gensalt());
     }
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_snippets",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "snippet_id", referencedColumnName = "id"))
+    private Set<Snippet> snippets;
 }
