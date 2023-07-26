@@ -82,16 +82,4 @@ public class UserController {
             return ResponseEntity.badRequest();
         }
     }
-
-    @PostMapping(path = "/users/login", consumes = "application/json", produces = "application/json")
-    public Object loginUser(@Valid @RequestBody final UserLogin user) {
-        final User matchingUser = userService.getUserByEmail(user.getEmail());
-
-        if (matchingUser != null && matchingUser.checkPassword(user.getPassword())) {
-            this.authorizationService.generateToken(matchingUser);
-            return ResponseEntity.ok("logged in");
-        } else {
-            return ResponseEntity.badRequest();
-        }
-    }
 }
